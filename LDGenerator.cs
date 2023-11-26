@@ -121,12 +121,12 @@ public class LDGenerator : MonoBehaviour
                     Quaternion rotation = Quaternion.Euler(0, Random.Range(0, 359), 0);
 
                     // ボックスとアイテムが重ならないとき
-                    if (!Physics.CheckBox(pos, halfExtents, Quaternion.identity, 1 << 12))
+                    if (!Physics.CheckBox(pos, halfExtents, rotation, 1 << 12))
                     {
                         // アイテムをインスタンス化
                         detectObjects.Add(Instantiate(detectObject, pos, rotation));
 
-                        // SetRandomPose(detectObjects[i]);
+                        SetRandomPose(detectObjects[i]);
 
                         // カメラのメインカメラを使用してワールド座標からスクリーン座標に変換
                         // Camera mainCamera = Camera.main;
@@ -301,17 +301,89 @@ public class LDGenerator : MonoBehaviour
         // キャラクターの全てのボーンを取得
         // 例として、Animatorコンポーネントを使用してボーンを取得
         Animator animator = character.GetComponent<Animator>();
+
+        Quaternion LeftUpLeg = Quaternion.Euler(180, 180, 0);
+        Quaternion RightUpLeg, LeftUpArm, RightUpArm;
+        float LeftUpLegX = 0;
+        float LeftUpArmX = 0;
+        float LeftUpArmZ = 0;
+        float RightUpArmX = 0;
+        float RightUpArmZ = 0;
+
         if (animator == null)
         {
             Debug.LogError("Animator component not found on the character.");
             return;
         }
 
+        // animator.GetBoneTransform(HumanBodyBones.),
+        Transform[] targetBones = {
+            animator.GetBoneTransform(HumanBodyBones.LeftUpperLeg),
+            animator.GetBoneTransform(HumanBodyBones.RightUpperLeg),
+            animator.GetBoneTransform(HumanBodyBones.LeftUpperArm),
+            animator.GetBoneTransform(HumanBodyBones.RightUpperArm)
+            // animator.GetBoneTransform(HumanBodyBones.),
+            // animator.GetBoneTransform(HumanBodyBones.),
+            // animator.GetBoneTransform(HumanBodyBones.Hips)
+        };
+
+        // Debug.Log($"{targetBones[0]}");
+
         // ボーンのTransformコンポーネントを反復処理
-        foreach (Transform bone in animator.GetBoneTransform(HumanBodyBones.Hips).GetComponentsInChildren<Transform>())
+        foreach (Transform bone in targetBones)
         {
+            if (bone.name.Contains("LeftUpLeg"))
+            {
+                // 左ふともも
+                LeftUpLegX = Random.Range(150, 210); // 前後の回転
+                float yRot = Random.Range(180, 190); // 外側と内側への回転
+                float zRot = 0; // 左太ももはZ軸周りにはほとんど回転しません
+                LeftUpLeg = Quaternion.Euler(LeftUpLegX, yRot, zRot);
+                Debug.Log($"LeftUpLeg:{LeftUpLeg}");
+
+                bone.localRotation = LeftUpLeg;
+            }
+            else if (bone.name.Contains("RightUpLeg"))
+            {
+                float xRot = Random.Range(150, 210); // 前後の回転
+                float yRot = Random.Range(180, 190); // 外側と内側への回転
+                float zRot = 0; // 左太ももはZ軸周りにはほとんど回転しません
+
+                RightUpLeg = Quaternion.Euler((360 - LeftUpLegX), yRot, zRot);
+
+                bone.localRotation = RightUpLeg;
+            }
+            else if (bone.name.Contains("LeftArm"))
+            {
+                LeftUpArmX = Random.Range(50, 65); // 正面から見たときの開閉
+                float yRot = Random.Range(-5, 5); // 腕のひねり
+                if (LeftUpLegX > 180)
+                {
+                    LeftUpArmZ = Random.Range(0, 50);
+                }
+                else
+                {
+                    LeftUpArmZ = Random.Range(-50, 0);
+                }
+
+                LeftUpArm = Quaternion.Euler(LeftUpArmX, yRot, LeftUpArmZ);
+
+                bone.localRotation = LeftUpArm;
+            }
+            else if (bone.name.Contains("RightArm"))
+            {
+                RightUpArmX = LeftUpArmX;
+                float yRot = Random.Range(-5, 5); // 腕のひねり
+                RightUpArmZ = LeftUpArmZ;
+
+                RightUpArm = Quaternion.Euler(RightUpArmX, yRot, RightUpArmZ);
+
+                bone.localRotation = RightUpArm;
+                Debug.Log($"LeftUpArmZ:{LeftUpArmZ}, RightUpArmZ:{RightUpArmZ}");
+            }
             // ボーンごとに異なる回転範囲を設定するための関数を呼び出し
-            bone.localRotation = GetRandomRotationForBone(bone);
+            // bone.localRotation = GetRandomRotationForBone(bone);
+            // bone.rotation = GetRandomRotationForBone(bone);
         }
     }
 
