@@ -345,6 +345,7 @@ public class LDGenerator : MonoBehaviour
             }
             else if (bone.name.Contains("RightUpLeg"))
             {
+                // 右ふともも
                 float xRot = Random.Range(150, 210); // 前後の回転
                 float yRot = Random.Range(180, 190); // 外側と内側への回転
                 float zRot = 0; // 左太ももはZ軸周りにはほとんど回転しません
@@ -355,9 +356,10 @@ public class LDGenerator : MonoBehaviour
             }
             else if (bone.name.Contains("LeftArm"))
             {
+                // 左上腕
                 LeftUpArmX = Random.Range(50, 65); // 正面から見たときの開閉
                 float yRot = Random.Range(-5, 5); // 腕のひねり
-                if (LeftUpLegX > 180)
+                if (LeftUpLegX > 180) // 横から見たときの前後
                 {
                     LeftUpArmZ = Random.Range(0, 50);
                 }
@@ -372,6 +374,7 @@ public class LDGenerator : MonoBehaviour
             }
             else if (bone.name.Contains("RightArm"))
             {
+                // 右上腕
                 RightUpArmX = LeftUpArmX;
                 float yRot = Random.Range(-5, 5); // 腕のひねり
                 RightUpArmZ = LeftUpArmZ;
