@@ -84,7 +84,6 @@ public class LDGenerator : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             ApplyRandomMaterial();
-            // ScreenShotCapture();
             // アイテムを全削除
             foreach (var i in detectObjects)
             {
@@ -124,19 +123,7 @@ public class LDGenerator : MonoBehaviour
                     if (!Physics.CheckBox(pos, halfExtents, rotation, 1 << 12))
                     {
                         // アイテムをインスタンス化
-                        // detectObjects.Add(Instantiate(detectObject, pos, rotation));
-
-                        // SetRandomPose(detectObjects[i]);
-
                         detectObjects.Add(Instantiate(SetRandomPose(detectObject), pos, rotation));
-
-                        // カメラのメインカメラを使用してワールド座標からスクリーン座標に変換
-                        // Camera mainCamera = Camera.main;
-                        // Vector3 screenPosition = mainCamera.WorldToScreenPoint(pos);
-                        // Debug.Log($"screenPosition:{screenPosition}");
-
-                        // objectのバウンディングボックス取得
-                        // saveTxt += $"{CalculateBoundingBox(detectObjects[i], mainCamera)}";
                         saveTxt += $"{CalculateSkinnedMeshRendererBoundingBox(detectObjects[i], mainCamera)}";
 
                         break;
@@ -302,6 +289,7 @@ public class LDGenerator : MonoBehaviour
     // この関数を呼び出してランダムなポーズを設定
     public GameObject SetRandomPose(GameObject character)
     {
+        SetMaterialsToModels(character);
         // キャラクターの全てのボーンを取得
         // 例として、Animatorコンポーネントを使用してボーンを取得
         Animator animator = character.GetComponent<Animator>();
@@ -383,27 +371,9 @@ public class LDGenerator : MonoBehaviour
                 bone.localRotation = RightUpArm;
                 Debug.Log($"LeftUpArmZ:{LeftUpArmZ}, RightUpArmZ:{RightUpArmZ}");
             }
-            // ボーンごとに異なる回転範囲を設定するための関数を呼び出し
-            // bone.localRotation = GetRandomRotationForBone(bone);
-            // bone.rotation = GetRandomRotationForBone(bone);
         }
 
         return character;
-    }
-
-    // ボーンごとに適切な回転範囲を定義
-    Quaternion GetRandomRotationForBone(Transform bone)
-    {
-        // 例: すべてのボーンに対して同じ範囲を使用
-        // 実際にはボーンの種類に応じて範囲を調整することが望ましい
-        float minAngle = -20f;
-        float maxAngle = 20f;
-
-        float xRot = Random.Range(minAngle, maxAngle);
-        float yRot = Random.Range(minAngle, maxAngle);
-        float zRot = Random.Range(minAngle, maxAngle);
-
-        return Quaternion.Euler(xRot, yRot, zRot);
     }
 
     public string[] CombineStrings(string prefix, string suffix, string[] items)
@@ -436,6 +406,107 @@ public class LDGenerator : MonoBehaviour
         };
         // newMaterial.color = randomColor;
         // groundRenderer.material = newMaterial;
+    }
+
+    public void SetMaterialsToModels(GameObject parentObject)
+    {
+        // 肌の色
+        Transform bodyTransform = parentObject.transform.Find("Ch31_Body");
+        if (bodyTransform != null)
+        {
+            Renderer bodyRenderer = bodyTransform.GetComponent<Renderer>();
+            if (bodyRenderer != null)
+            {
+                Color32 color1 = new Color32(255, 245, 240, 255);
+                Color32 color2 = new Color32(250, 190, 150, 255);
+                float lerpFactor = Random.Range(0f, 1f);
+                Color32 randomColor32 = Color32.Lerp(color1, color2, lerpFactor);
+                Color randomColor = randomColor32;
+                Material newMaterial = new Material(Shader.Find("Standard"));
+                newMaterial.color = randomColor;
+
+                bodyRenderer.material = newMaterial;
+            }
+        }
+
+        // 髪の毛
+        Transform hairTransform = parentObject.transform.Find("Ch31_Hair");
+        if (hairTransform != null)
+        {
+            Renderer hairRenderer = hairTransform.GetComponent<Renderer>();
+            if (hairRenderer != null)
+            {
+                Color32 color1 = new Color32(0, 0, 0, 255);
+                Color32 color2 = new Color32(116, 80, 48, 255);
+                float lerpFactor = Random.Range(0f, 1f);
+                Color32 randomColor32 = Color32.Lerp(color1, color2, lerpFactor);
+                Color randomColor = randomColor32;
+                Material newMaterial = new Material(Shader.Find("Standard"));
+                newMaterial.color = randomColor;
+
+                hairRenderer.material = newMaterial;
+            }
+        }
+
+        // 上半身の服
+        Transform sweaterTransform = parentObject.transform.Find("Ch31_Sweater");
+        if (sweaterTransform != null)
+        {
+            Renderer sweaterRenderer = sweaterTransform.GetComponent<Renderer>();
+            if (sweaterRenderer != null)
+            {
+                // Color32 color1 = new Color32(255, 245, 240, 255);
+                // Color32 color2 = new Color32(250, 190, 150, 255);
+                // float lerpFactor = Random.Range(0f, 1f);
+                // Color32 randomColor32 = Color32.Lerp(color1, color2, lerpFactor);
+                // Color randomColor = randomColor32;
+                Color randomColor = new Color(Random.value, Random.value, Random.value);
+                Material newMaterial = new Material(Shader.Find("Standard"));
+                newMaterial.color = randomColor;
+
+                sweaterRenderer.material = newMaterial;
+            }
+        }
+
+        // 下半身の服
+        Transform pantsTransform = parentObject.transform.Find("Ch31_Pants");
+        if (pantsTransform != null)
+        {
+            Renderer pantsRenderer = pantsTransform.GetComponent<Renderer>();
+            if (pantsRenderer != null)
+            {
+                // Color32 color1 = new Color32(255, 245, 240, 255);
+                // Color32 color2 = new Color32(250, 190, 150, 255);
+                // float lerpFactor = Random.Range(0f, 1f);
+                // Color32 randomColor32 = Color32.Lerp(color1, color2, lerpFactor);
+                // Color randomColor = randomColor32;
+                Color randomColor = new Color(Random.value, Random.value, Random.value);
+                Material newMaterial = new Material(Shader.Find("Standard"));
+                newMaterial.color = randomColor;
+
+                pantsRenderer.material = newMaterial;
+            }
+        }
+
+        // 靴
+        Transform shoesTransform = parentObject.transform.Find("Ch31_Shoes");
+        if (shoesTransform != null)
+        {
+            Renderer shoesRenderer = shoesTransform.GetComponent<Renderer>();
+            if (shoesRenderer != null)
+            {
+                // Color32 color1 = new Color32(200, 200, 200, 255);
+                // Color32 color2 = new Color32(0, 0, 0, 255);
+                // float lerpFactor = Random.Range(0f, 1f);
+                // Color32 randomColor32 = Color32.Lerp(color1, color2, lerpFactor);
+                // Color randomColor = randomColor32;
+                Color randomColor = new Color(Random.value, Random.value, Random.value);
+                Material newMaterial = new Material(Shader.Find("Standard"));
+                newMaterial.color = randomColor;
+
+                shoesRenderer.material = newMaterial;
+            }
+        }
     }
 
 }
