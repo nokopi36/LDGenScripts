@@ -88,12 +88,12 @@ public class LDGenerator : MonoBehaviour
             // アイテムを全削除
             foreach (var i in detectObjects)
             {
-                Destroy(i);
+                DestroyImmediate(i);
             }
             detectObjects.Clear();
             foreach (var j in obstacleObjects)
             {
-                Destroy(j);
+                DestroyImmediate(j);
             }
             obstacleObjects.Clear();
             saveTxt = "";
@@ -124,9 +124,11 @@ public class LDGenerator : MonoBehaviour
                     if (!Physics.CheckBox(pos, halfExtents, rotation, 1 << 12))
                     {
                         // アイテムをインスタンス化
-                        detectObjects.Add(Instantiate(detectObject, pos, rotation));
+                        // detectObjects.Add(Instantiate(detectObject, pos, rotation));
 
-                        SetRandomPose(detectObjects[i]);
+                        // SetRandomPose(detectObjects[i]);
+
+                        detectObjects.Add(Instantiate(SetRandomPose(detectObject), pos, rotation));
 
                         // カメラのメインカメラを使用してワールド座標からスクリーン座標に変換
                         // Camera mainCamera = Camera.main;
@@ -203,7 +205,7 @@ public class LDGenerator : MonoBehaviour
     //     screenshot.ReadPixels(new Rect(0, 0, width, height), 0, 0);
     //     camera.targetTexture = null;
     //     RenderTexture.active = null;
-    //     Destroy(rt);
+    //     DestroyImmediate(rt);
 
     //     // スクリーンショットを保存
     //     byte[] bytes = screenshot.EncodeToPNG();
@@ -256,19 +258,21 @@ public class LDGenerator : MonoBehaviour
     {
         Vector3 minScreen = new Vector3(float.MaxValue, float.MaxValue, 0);
         Vector3 maxScreen = new Vector3(float.MinValue, float.MinValue, 0);
+        string saves = "";
 
         // すべてのSkinnedMeshRendererコンポーネントを取得
         SkinnedMeshRenderer[] skinnedMeshRenderers = obj.GetComponentsInChildren<SkinnedMeshRenderer>();
 
         foreach (SkinnedMeshRenderer skinnedMeshRenderer in skinnedMeshRenderers)
         {
-            Mesh mesh = skinnedMeshRenderer.sharedMesh;
+            // 現在のスキンドメッシュの状態を反映したメッシュを生成
+            Mesh bakedMesh = new Mesh();
+            skinnedMeshRenderer.BakeMesh(bakedMesh);
 
-            foreach (Vector3 vertex in mesh.vertices)
+            foreach (Vector3 vertex in bakedMesh.vertices)
             {
                 // ワールド座標に変換
                 Vector3 worldPoint = skinnedMeshRenderer.transform.TransformPoint(vertex);
-                // Debug.Log($"{skinnedMeshRenderer.materials}");
 
                 // スクリーン座標に変換
                 Vector3 screenPoint = camera.WorldToScreenPoint(worldPoint);
@@ -277,6 +281,8 @@ public class LDGenerator : MonoBehaviour
                 minScreen = Vector3.Min(minScreen, screenPoint);
                 maxScreen = Vector3.Max(maxScreen, screenPoint);
             }
+            // 生成した一時メッシュの破棄
+            DestroyImmediate(bakedMesh);
         }
 
         // スクリーン座標でのバウンディングボックスを算出
@@ -290,13 +296,11 @@ public class LDGenerator : MonoBehaviour
         float yCenter = boundingBox.y + boundingBox.height / 2;
         string text = $"0 {xCenter} {yCenter} {boundingBox.width} {boundingBox.height}\n";
 
-        // Debug.Log($"Bounding Box: {boundingBox}, text: {text}");
-
         return text;
     }
 
     // この関数を呼び出してランダムなポーズを設定
-    public void SetRandomPose(GameObject character)
+    public GameObject SetRandomPose(GameObject character)
     {
         // キャラクターの全てのボーンを取得
         // 例として、Animatorコンポーネントを使用してボーンを取得
@@ -313,7 +317,7 @@ public class LDGenerator : MonoBehaviour
         if (animator == null)
         {
             Debug.LogError("Animator component not found on the character.");
-            return;
+            return character;
         }
 
         // animator.GetBoneTransform(HumanBodyBones.),
@@ -388,6 +392,8 @@ public class LDGenerator : MonoBehaviour
             // bone.localRotation = GetRandomRotationForBone(bone);
             // bone.rotation = GetRandomRotationForBone(bone);
         }
+
+        return character;
     }
 
     // ボーンごとに適切な回転範囲を定義
