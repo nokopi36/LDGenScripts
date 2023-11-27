@@ -27,12 +27,12 @@ public class LDGenerator : MonoBehaviour
     [Tooltip("生成する範囲B(右上)")]
     private Transform rangeB;
 
-    // [SerializeField]
-    // [Tooltip("撮影する画像の横")]
-    // private int width = 1352;
-    // [SerializeField]
-    // [Tooltip("撮影する画像の縦")]
-    // private int height = 1013;
+    [SerializeField]
+    [Tooltip("撮影する画像の横")]
+    private int width = 1352;
+    [SerializeField]
+    [Tooltip("撮影する画像の縦")]
+    private int height = 1013;
 
     [SerializeField]
     [Tooltip("保存先ディレクトリ名")]
@@ -181,7 +181,7 @@ public class LDGenerator : MonoBehaviour
                 }
             }
 
-            // ScreenShotCapture();
+            ScreenShotCapture();
 
             if (saveTxtEnabled)
             {
@@ -190,29 +190,29 @@ public class LDGenerator : MonoBehaviour
         }
     }
 
-    // public void ScreenShotCapture()
-    // {
-    //     // スクリーンショットを撮影
-    //     RenderTexture rt = new RenderTexture(width, height, 24);
-    //     rt.Create();
-    //     Camera camera = GetComponent<Camera>();
-    //     camera.targetTexture = rt;
+    public void ScreenShotCapture()
+    {
+        // スクリーンショットを撮影
+        RenderTexture rt = new RenderTexture(width, height, 24);
+        rt.Create();
+        Camera camera = GetComponent<Camera>();
+        camera.targetTexture = rt;
 
-    //     camera.Render();
-    //     Texture2D screenshot = new Texture2D(width, height, TextureFormat.RGB24, false);
-    //     // camera.Render();
-    //     RenderTexture.active = rt;
-    //     screenshot.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-    //     camera.targetTexture = null;
-    //     RenderTexture.active = null;
-    //     DestroyImmediate(rt);
+        camera.Render();
+        Texture2D screenshot = new Texture2D(width, height, TextureFormat.RGB24, false);
+        // camera.Render();
+        RenderTexture.active = rt;
+        screenshot.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+        camera.targetTexture = null;
+        RenderTexture.active = null;
+        DestroyImmediate(rt);
 
-    //     // スクリーンショットを保存
-    //     byte[] bytes = screenshot.EncodeToPNG();
-    //     string screenshotFileName = $"{screenshotPath}/Screenshot_{System.DateTime.Now:yyyy-MM-dd_HH-mm-ss}.png";
-    //     Directory.CreateDirectory(screenshotPath);
-    //     File.WriteAllBytes(screenshotFileName, bytes);
-    // }
+        // スクリーンショットを保存
+        byte[] bytes = screenshot.EncodeToPNG();
+        string screenshotFileName = $"{screenshotPath}/Screenshot_{System.DateTime.Now:yyyy-MM-dd_HH-mm-ss}.png";
+        Directory.CreateDirectory(screenshotPath);
+        File.WriteAllBytes(screenshotFileName, bytes);
+    }
 
     // MeshFilterを持っている場合
     // private string CalculateBoundingBox(GameObject obj, Camera camera)
@@ -326,12 +326,7 @@ public class LDGenerator : MonoBehaviour
             animator.GetBoneTransform(HumanBodyBones.RightUpperLeg),
             animator.GetBoneTransform(HumanBodyBones.LeftUpperArm),
             animator.GetBoneTransform(HumanBodyBones.RightUpperArm)
-            // animator.GetBoneTransform(HumanBodyBones.),
-            // animator.GetBoneTransform(HumanBodyBones.),
-            // animator.GetBoneTransform(HumanBodyBones.Hips)
         };
-
-        // Debug.Log($"{targetBones[0]}");
 
         // ボーンのTransformコンポーネントを反復処理
         foreach (Transform bone in targetBones)
