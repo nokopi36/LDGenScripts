@@ -58,14 +58,23 @@ public class LDGenerator : MonoBehaviour
 
     private Camera mainCamera;
 
+    // 配置する障害物
     string obstaclesPrefix = "Assets/prefabs/obstacles/";
     string obstaclesSuffix = ".prefab";
     private string[] obstaclesName = { "Tree9_2", "Tree9_3", "Tree9_4", "Tree9_5" };
     string[] obstacles;
+
+    // 地面のMaterials
     string groundTexturesPrefix = "Assets/prefabs/groundTextures/";
     string groundTexturesSuffix = ".mat";
     private string[] groundTexturesName = { "g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g10", "g11" };
     string[] groundTextures;
+
+    // 配置する人間
+    string humansPrefix = "Assets/prefabs/humans/";
+    string humansSuffix = ".fbx";
+    private string[] humansName = { "man1", "man2" };
+    string[] humans;
 
 
     // Start is called before the first frame update
@@ -79,6 +88,7 @@ public class LDGenerator : MonoBehaviour
         }
         obstacles = CombineStrings(obstaclesPrefix, obstaclesSuffix, obstaclesName);
         groundTextures = CombineStrings(groundTexturesPrefix, groundTexturesSuffix, groundTexturesName);
+        humans = CombineStrings(humansPrefix, humansSuffix, humansName);
     }
 
     // Update is called once per frame
@@ -109,6 +119,7 @@ public class LDGenerator : MonoBehaviour
 
     IEnumerator LDGen()
     {
+        Debug.Log("生成中・・・");
         for (int number = 1; number <= numberToGen; number++)
         {
             ApplyRandomMaterial();
@@ -137,26 +148,34 @@ public class LDGenerator : MonoBehaviour
             // アイテムを作る
             for (int i = 0; i < genDetectObject; i++)
             {
-                // 10回試す
-                for (int n = 0; n < 10; n++)
+                string randomHuman = humans[Random.Range(0, humans.Length)];
+                Addressables.LoadAssetAsync<GameObject>(randomHuman).Completed += (AsyncOperationHandle<GameObject> handle) =>
                 {
-                    // ランダムの位置
-                    float x = Random.Range(rangeA.position.x, rangeB.position.x);
-                    float y = Random.Range(rangeA.position.y, rangeB.position.y);
-                    float z = Random.Range(rangeA.position.z, rangeB.position.z);
-                    Vector3 pos = new Vector3(x, y, z);
-                    Quaternion rotation = Quaternion.Euler(0, Random.Range(0, 359), 0);
-
-                    // ボックスとアイテムが重ならないとき
-                    if (!Physics.CheckBox(pos, halfExtents, rotation, 1 << 12))
+                    GameObject prefab = handle.Result;
+                    if (handle.Status == AsyncOperationStatus.Succeeded)
                     {
-                        // アイテムをインスタンス化
-                        detectObjects.Add(Instantiate(SetRandomPose(detectObject), pos, rotation));
-                        saveTxt += $"{CalculateSkinnedMeshRendererBoundingBox(detectObjects[i], mainCamera)}";
+                        // 10回試す
+                        for (int n = 0; n < 10; n++)
+                        {
+                            // ランダムの位置
+                            float x = Random.Range(rangeA.position.x, rangeB.position.x);
+                            float y = Random.Range(rangeA.position.y, rangeB.position.y);
+                            float z = Random.Range(rangeA.position.z, rangeB.position.z);
+                            Vector3 pos = new Vector3(x, y, z);
+                            Quaternion rotation = Quaternion.Euler(0, Random.Range(0, 359), 0);
 
-                        break;
+                            // ボックスとアイテムが重ならないとき
+                            if (!Physics.CheckBox(pos, halfExtents, rotation, 1 << 12))
+                            {
+                                // アイテムをインスタンス化
+                                detectObjects.Add(Instantiate(SetRandomPose(prefab), pos, rotation));
+                                saveTxt += $"{CalculateSkinnedMeshRendererBoundingBox(detectObjects[i], mainCamera)}";
+
+                                break;
+                            }
+                        }
                     }
-                }
+                };
 
             }
 
@@ -437,10 +456,96 @@ public class LDGenerator : MonoBehaviour
         // groundRenderer.material = newMaterial;
     }
 
+    // public void SetMaterialsToModels(GameObject parentObject)
+    // {
+    //     // 肌の色
+    //     Transform bodyTransform = parentObject.transform.Find("Ch31_Body");
+    //     if (bodyTransform != null)
+    //     {
+    //         Renderer bodyRenderer = bodyTransform.GetComponent<Renderer>();
+    //         if (bodyRenderer != null)
+    //         {
+    //             Color32 color1 = new Color32(255, 245, 240, 255);
+    //             Color32 color2 = new Color32(250, 190, 150, 255);
+    //             float lerpFactor = Random.Range(0f, 1f);
+    //             Color32 randomColor32 = Color32.Lerp(color1, color2, lerpFactor);
+    //             Color randomColor = randomColor32;
+    //             Material newMaterial = new Material(Shader.Find("Standard"));
+    //             newMaterial.color = randomColor;
+
+    //             bodyRenderer.material = newMaterial;
+    //         }
+    //     }
+
+    //     // 髪の毛
+    //     Transform hairTransform = parentObject.transform.Find("Ch31_Hair");
+    //     if (hairTransform != null)
+    //     {
+    //         Renderer hairRenderer = hairTransform.GetComponent<Renderer>();
+    //         if (hairRenderer != null)
+    //         {
+    //             Color32 color1 = new Color32(0, 0, 0, 255);
+    //             Color32 color2 = new Color32(116, 80, 48, 255);
+    //             float lerpFactor = Random.Range(0f, 1f);
+    //             Color32 randomColor32 = Color32.Lerp(color1, color2, lerpFactor);
+    //             Color randomColor = randomColor32;
+    //             Material newMaterial = new Material(Shader.Find("Standard"));
+    //             newMaterial.color = randomColor;
+
+    //             hairRenderer.material = newMaterial;
+    //         }
+    //     }
+
+    //     // 上半身の服
+    //     Transform sweaterTransform = parentObject.transform.Find("Ch31_Sweater");
+    //     if (sweaterTransform != null)
+    //     {
+    //         Renderer sweaterRenderer = sweaterTransform.GetComponent<Renderer>();
+    //         if (sweaterRenderer != null)
+    //         {
+    //             Color randomColor = new Color(Random.value, Random.value, Random.value);
+    //             Material newMaterial = new Material(Shader.Find("Standard"));
+    //             newMaterial.color = randomColor;
+
+    //             sweaterRenderer.material = newMaterial;
+    //         }
+    //     }
+
+    //     // 下半身の服
+    //     Transform pantsTransform = parentObject.transform.Find("Ch31_Pants");
+    //     if (pantsTransform != null)
+    //     {
+    //         Renderer pantsRenderer = pantsTransform.GetComponent<Renderer>();
+    //         if (pantsRenderer != null)
+    //         {
+    //             Color randomColor = new Color(Random.value, Random.value, Random.value);
+    //             Material newMaterial = new Material(Shader.Find("Standard"));
+    //             newMaterial.color = randomColor;
+
+    //             pantsRenderer.material = newMaterial;
+    //         }
+    //     }
+
+    //     // 靴
+    //     Transform shoesTransform = parentObject.transform.Find("Ch31_Shoes");
+    //     if (shoesTransform != null)
+    //     {
+    //         Renderer shoesRenderer = shoesTransform.GetComponent<Renderer>();
+    //         if (shoesRenderer != null)
+    //         {
+    //             Color randomColor = new Color(Random.value, Random.value, Random.value);
+    //             Material newMaterial = new Material(Shader.Find("Standard"));
+    //             newMaterial.color = randomColor;
+
+    //             shoesRenderer.material = newMaterial;
+    //         }
+    //     }
+    // }
+
     public void SetMaterialsToModels(GameObject parentObject)
     {
         // 肌の色
-        Transform bodyTransform = parentObject.transform.Find("Ch31_Body");
+        Transform bodyTransform = parentObject.transform.Find("Body");
         if (bodyTransform != null)
         {
             Renderer bodyRenderer = bodyTransform.GetComponent<Renderer>();
@@ -459,7 +564,7 @@ public class LDGenerator : MonoBehaviour
         }
 
         // 髪の毛
-        Transform hairTransform = parentObject.transform.Find("Ch31_Hair");
+        Transform hairTransform = parentObject.transform.Find("Hair");
         if (hairTransform != null)
         {
             Renderer hairRenderer = hairTransform.GetComponent<Renderer>();
@@ -478,7 +583,7 @@ public class LDGenerator : MonoBehaviour
         }
 
         // 上半身の服
-        Transform sweaterTransform = parentObject.transform.Find("Ch31_Sweater");
+        Transform sweaterTransform = parentObject.transform.Find("Tops");
         if (sweaterTransform != null)
         {
             Renderer sweaterRenderer = sweaterTransform.GetComponent<Renderer>();
@@ -493,7 +598,7 @@ public class LDGenerator : MonoBehaviour
         }
 
         // 下半身の服
-        Transform pantsTransform = parentObject.transform.Find("Ch31_Pants");
+        Transform pantsTransform = parentObject.transform.Find("Pants");
         if (pantsTransform != null)
         {
             Renderer pantsRenderer = pantsTransform.GetComponent<Renderer>();
@@ -508,7 +613,7 @@ public class LDGenerator : MonoBehaviour
         }
 
         // 靴
-        Transform shoesTransform = parentObject.transform.Find("Ch31_Shoes");
+        Transform shoesTransform = parentObject.transform.Find("Shoes");
         if (shoesTransform != null)
         {
             Renderer shoesRenderer = shoesTransform.GetComponent<Renderer>();
