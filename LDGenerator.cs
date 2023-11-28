@@ -36,11 +36,15 @@ public class LDGenerator : MonoBehaviour
 
     [SerializeField]
     [Tooltip("保存先ディレクトリ名")]
-    private string screenshotPath = "ScreenShots";
+    private string LDGenSavePath = "ScreenShots";
 
     [SerializeField]
-    [Tooltip("座標を保存するか否か(デフォルト値true)")]
-    private bool saveTxtEnabled = true;
+    [Tooltip("生成する画像の枚数")]
+    private int numberToGen = 1;
+
+    [SerializeField]
+    [Tooltip("LDを生成するかどうか(デフォルト値true)")]
+    private bool LDGenMode = true;
 
     [SerializeField]
     [Tooltip("障害物を配置するかどうか(デフォルト値true)")]
@@ -82,6 +86,30 @@ public class LDGenerator : MonoBehaviour
     {
         // 左クリック
         if (Input.GetMouseButtonDown(0))
+        {
+            if (LDGenMode)
+            {
+                string dirPath = Path.Combine("/home/ryotahiyama/unityProject/LDGen/", LDGenSavePath);
+                // Debug.Log($"{dirPath}");
+                // ディレクトリが存在するか確認
+                if (!Directory.Exists(dirPath))
+                {
+                    // ディレクトリが存在しない場合、新しく作成
+                    Directory.CreateDirectory(dirPath);
+                    Debug.Log("ディレクトリが作成されました: " + dirPath);
+                }
+                else
+                {
+                    Debug.Log("ディレクトリは既に存在します: " + dirPath);
+                }
+            }
+            StartCoroutine("LDGen");
+        }
+    }
+
+    IEnumerator LDGen()
+    {
+        for (int number = 1; number <= numberToGen; number++)
         {
             ApplyRandomMaterial();
             // アイテムを全削除
@@ -168,16 +196,17 @@ public class LDGenerator : MonoBehaviour
                 }
             }
 
-            ScreenShotCapture();
-
-            if (saveTxtEnabled)
+            if (LDGenMode)
             {
-                File.WriteAllText($"{screenshotPath}/Screenshot_{System.DateTime.Now:yyyy-MM-dd_HH-mm-ss}.txt", saveTxt);
+                File.WriteAllText($"{LDGenSavePath}/{number}.txt", saveTxt);
+                ScreenShotCapture(number);
             }
+            yield return new WaitForSeconds(1);
         }
+        Debug.Log("生成終了");
     }
 
-    public void ScreenShotCapture()
+    public void ScreenShotCapture(int filename)
     {
         // スクリーンショットを撮影
         RenderTexture rt = new RenderTexture(width, height, 24);
@@ -196,8 +225,8 @@ public class LDGenerator : MonoBehaviour
 
         // スクリーンショットを保存
         byte[] bytes = screenshot.EncodeToPNG();
-        string screenshotFileName = $"{screenshotPath}/Screenshot_{System.DateTime.Now:yyyy-MM-dd_HH-mm-ss}.png";
-        Directory.CreateDirectory(screenshotPath);
+        string screenshotFileName = $"{LDGenSavePath}/{filename}.png";
+        // Directory.CreateDirectory(LDGenSavePath);
         File.WriteAllBytes(screenshotFileName, bytes);
     }
 
@@ -326,7 +355,7 @@ public class LDGenerator : MonoBehaviour
                 float yRot = Random.Range(180, 190); // 外側と内側への回転
                 float zRot = 0; // 左太ももはZ軸周りにはほとんど回転しません
                 LeftUpLeg = Quaternion.Euler(LeftUpLegX, yRot, zRot);
-                Debug.Log($"LeftUpLeg:{LeftUpLeg}");
+                // Debug.Log($"LeftUpLeg:{LeftUpLeg}");
 
                 bone.localRotation = LeftUpLeg;
             }
@@ -369,7 +398,7 @@ public class LDGenerator : MonoBehaviour
                 RightUpArm = Quaternion.Euler(RightUpArmX, yRot, RightUpArmZ);
 
                 bone.localRotation = RightUpArm;
-                Debug.Log($"LeftUpArmZ:{LeftUpArmZ}, RightUpArmZ:{RightUpArmZ}");
+                // Debug.Log($"LeftUpArmZ:{LeftUpArmZ}, RightUpArmZ:{RightUpArmZ}");
             }
         }
 
@@ -455,11 +484,6 @@ public class LDGenerator : MonoBehaviour
             Renderer sweaterRenderer = sweaterTransform.GetComponent<Renderer>();
             if (sweaterRenderer != null)
             {
-                // Color32 color1 = new Color32(255, 245, 240, 255);
-                // Color32 color2 = new Color32(250, 190, 150, 255);
-                // float lerpFactor = Random.Range(0f, 1f);
-                // Color32 randomColor32 = Color32.Lerp(color1, color2, lerpFactor);
-                // Color randomColor = randomColor32;
                 Color randomColor = new Color(Random.value, Random.value, Random.value);
                 Material newMaterial = new Material(Shader.Find("Standard"));
                 newMaterial.color = randomColor;
@@ -475,11 +499,6 @@ public class LDGenerator : MonoBehaviour
             Renderer pantsRenderer = pantsTransform.GetComponent<Renderer>();
             if (pantsRenderer != null)
             {
-                // Color32 color1 = new Color32(255, 245, 240, 255);
-                // Color32 color2 = new Color32(250, 190, 150, 255);
-                // float lerpFactor = Random.Range(0f, 1f);
-                // Color32 randomColor32 = Color32.Lerp(color1, color2, lerpFactor);
-                // Color randomColor = randomColor32;
                 Color randomColor = new Color(Random.value, Random.value, Random.value);
                 Material newMaterial = new Material(Shader.Find("Standard"));
                 newMaterial.color = randomColor;
@@ -495,11 +514,6 @@ public class LDGenerator : MonoBehaviour
             Renderer shoesRenderer = shoesTransform.GetComponent<Renderer>();
             if (shoesRenderer != null)
             {
-                // Color32 color1 = new Color32(200, 200, 200, 255);
-                // Color32 color2 = new Color32(0, 0, 0, 255);
-                // float lerpFactor = Random.Range(0f, 1f);
-                // Color32 randomColor32 = Color32.Lerp(color1, color2, lerpFactor);
-                // Color randomColor = randomColor32;
                 Color randomColor = new Color(Random.value, Random.value, Random.value);
                 Material newMaterial = new Material(Shader.Find("Standard"));
                 newMaterial.color = randomColor;
