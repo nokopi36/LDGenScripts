@@ -12,10 +12,6 @@ public class LDGenerator : MonoBehaviour
     private GameObject groundObject;
 
     [SerializeField]
-    [Tooltip("生成するObject")]
-    private GameObject detectObject;
-
-    [SerializeField]
     [Tooltip("生成する数")]
     private int genDetectObject = 30;
 
