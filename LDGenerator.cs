@@ -65,17 +65,19 @@ public class LDGenerator : MonoBehaviour
     string[] obstacles;
 
     // 地面のMaterials
-    string groundTexturesPrefix = "Assets/prefabs/groundTextures/";
-    string groundTexturesSuffix = ".mat";
+    string groundTexturesPrefix = "groundTextures/";
+    string groundTexturesSuffix = "";
     private string[] groundTexturesName = { "g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g10", "g11" };
     string[] groundTextures;
 
     // 配置する人間
-    string humansPrefix = "Assets/prefabs/humans/";
-    string humansSuffix = ".fbx";
-    private string[] humansName = { "man1", "man2" };
+    string humansPrefix = "humans/";
+    string humansSuffix = "";
+    private string[] humansName = { "man1", "man3", "man4", "man5", "man6", "man7", "man8", "man9", "woman1", "woman2", "woman3", "woman4", "woman5", "woman6", "woman7", "woman8", };
     string[] humans;
 
+    List<GameObject> loadedhumans = new List<GameObject>();
+    List<Material> loadedGroundTextures = new List<Material>();
 
     // Start is called before the first frame update
     void Start()
@@ -97,6 +99,26 @@ public class LDGenerator : MonoBehaviour
         // 左クリック
         if (Input.GetMouseButtonDown(0))
         {
+            // 人間のロード
+            foreach (string human in humans)
+            {
+                GameObject loadedhuman = Resources.Load<GameObject>(human);
+                if (loadedhuman != null)
+                {
+                    loadedhumans.Add(loadedhuman);
+                }
+            }
+
+            // 地面のテクスチャのロード
+            foreach (string groundTexture in groundTextures)
+            {
+                Material loadedGroundTexture = Resources.Load<Material>(groundTexture);
+                if (loadedGroundTexture != null)
+                {
+                    loadedGroundTextures.Add(loadedGroundTexture);
+                }
+            }
+
             if (LDGenMode)
             {
                 string dirPath = Path.Combine("/home/ryotahiyama/unityProject/LDGen/", LDGenSavePath);
@@ -148,34 +170,28 @@ public class LDGenerator : MonoBehaviour
             // アイテムを作る
             for (int i = 0; i < genDetectObject; i++)
             {
-                string randomHuman = humans[Random.Range(0, humans.Length)];
-                Addressables.LoadAssetAsync<GameObject>(randomHuman).Completed += (AsyncOperationHandle<GameObject> handle) =>
+                GameObject randomHuman = loadedhumans[Random.Range(0, loadedhumans.Count)];
+                // 10回試す
+                for (int n = 0; n < 10; n++)
                 {
-                    GameObject prefab = handle.Result;
-                    if (handle.Status == AsyncOperationStatus.Succeeded)
+                    // ランダムの位置
+                    float x = Random.Range(rangeA.position.x, rangeB.position.x);
+                    float y = Random.Range(rangeA.position.y, rangeB.position.y);
+                    float z = Random.Range(rangeA.position.z, rangeB.position.z);
+                    Vector3 pos = new Vector3(x, y, z);
+                    Quaternion rotation = Quaternion.Euler(0, Random.Range(0, 359), 0);
+
+                    // ボックスとアイテムが重ならないとき
+                    if (!Physics.CheckBox(pos, halfExtents, rotation, 1 << 12))
                     {
-                        // 10回試す
-                        for (int n = 0; n < 10; n++)
-                        {
-                            // ランダムの位置
-                            float x = Random.Range(rangeA.position.x, rangeB.position.x);
-                            float y = Random.Range(rangeA.position.y, rangeB.position.y);
-                            float z = Random.Range(rangeA.position.z, rangeB.position.z);
-                            Vector3 pos = new Vector3(x, y, z);
-                            Quaternion rotation = Quaternion.Euler(0, Random.Range(0, 359), 0);
+                        // アイテムをインスタンス化
+                        GameObject createObject = Instantiate(SetRandomPose(randomHuman), pos, rotation);
+                        detectObjects.Add(createObject);
+                        saveTxt += $"{CalculateSkinnedMeshRendererBoundingBox(detectObjects[i], mainCamera)}";
 
-                            // ボックスとアイテムが重ならないとき
-                            if (!Physics.CheckBox(pos, halfExtents, rotation, 1 << 12))
-                            {
-                                // アイテムをインスタンス化
-                                detectObjects.Add(Instantiate(SetRandomPose(prefab), pos, rotation));
-                                saveTxt += $"{CalculateSkinnedMeshRendererBoundingBox(detectObjects[i], mainCamera)}";
-
-                                break;
-                            }
-                        }
+                        break;
                     }
-                };
+                }
 
             }
 
@@ -223,6 +239,7 @@ public class LDGenerator : MonoBehaviour
             yield return new WaitForSeconds(1);
         }
         Debug.Log("生成終了");
+        Resources.UnloadUnusedAssets();
     }
 
     public void ScreenShotCapture(int filename)
@@ -438,109 +455,10 @@ public class LDGenerator : MonoBehaviour
 
     public void ApplyRandomMaterial()
     {
-        // Color randomColor = new Color(Random.value, Random.value, Random.value);
-        // Debug.Log($"{randomColor}");
-        // Material newMaterial = new Material(Shader.Find("Standard"));
-
         Renderer groundRenderer = groundObject.GetComponent<Renderer>();
-        string randomGroundTexture = groundTextures[Random.Range(0, groundTextures.Length)];
-        Addressables.LoadAssetAsync<Material>(randomGroundTexture).Completed += (AsyncOperationHandle<Material> handle) =>
-        {
-            if (handle.Status == AsyncOperationStatus.Succeeded)
-            {
-                Material loadedMaterial = handle.Result;
-                groundRenderer.material = loadedMaterial;
-            }
-        };
-        // newMaterial.color = randomColor;
-        // groundRenderer.material = newMaterial;
+        Material randomGroundTexture = loadedGroundTextures[Random.Range(0, loadedGroundTextures.Count)];
+        groundRenderer.material = randomGroundTexture;
     }
-
-    // public void SetMaterialsToModels(GameObject parentObject)
-    // {
-    //     // 肌の色
-    //     Transform bodyTransform = parentObject.transform.Find("Ch31_Body");
-    //     if (bodyTransform != null)
-    //     {
-    //         Renderer bodyRenderer = bodyTransform.GetComponent<Renderer>();
-    //         if (bodyRenderer != null)
-    //         {
-    //             Color32 color1 = new Color32(255, 245, 240, 255);
-    //             Color32 color2 = new Color32(250, 190, 150, 255);
-    //             float lerpFactor = Random.Range(0f, 1f);
-    //             Color32 randomColor32 = Color32.Lerp(color1, color2, lerpFactor);
-    //             Color randomColor = randomColor32;
-    //             Material newMaterial = new Material(Shader.Find("Standard"));
-    //             newMaterial.color = randomColor;
-
-    //             bodyRenderer.material = newMaterial;
-    //         }
-    //     }
-
-    //     // 髪の毛
-    //     Transform hairTransform = parentObject.transform.Find("Ch31_Hair");
-    //     if (hairTransform != null)
-    //     {
-    //         Renderer hairRenderer = hairTransform.GetComponent<Renderer>();
-    //         if (hairRenderer != null)
-    //         {
-    //             Color32 color1 = new Color32(0, 0, 0, 255);
-    //             Color32 color2 = new Color32(116, 80, 48, 255);
-    //             float lerpFactor = Random.Range(0f, 1f);
-    //             Color32 randomColor32 = Color32.Lerp(color1, color2, lerpFactor);
-    //             Color randomColor = randomColor32;
-    //             Material newMaterial = new Material(Shader.Find("Standard"));
-    //             newMaterial.color = randomColor;
-
-    //             hairRenderer.material = newMaterial;
-    //         }
-    //     }
-
-    //     // 上半身の服
-    //     Transform sweaterTransform = parentObject.transform.Find("Ch31_Sweater");
-    //     if (sweaterTransform != null)
-    //     {
-    //         Renderer sweaterRenderer = sweaterTransform.GetComponent<Renderer>();
-    //         if (sweaterRenderer != null)
-    //         {
-    //             Color randomColor = new Color(Random.value, Random.value, Random.value);
-    //             Material newMaterial = new Material(Shader.Find("Standard"));
-    //             newMaterial.color = randomColor;
-
-    //             sweaterRenderer.material = newMaterial;
-    //         }
-    //     }
-
-    //     // 下半身の服
-    //     Transform pantsTransform = parentObject.transform.Find("Ch31_Pants");
-    //     if (pantsTransform != null)
-    //     {
-    //         Renderer pantsRenderer = pantsTransform.GetComponent<Renderer>();
-    //         if (pantsRenderer != null)
-    //         {
-    //             Color randomColor = new Color(Random.value, Random.value, Random.value);
-    //             Material newMaterial = new Material(Shader.Find("Standard"));
-    //             newMaterial.color = randomColor;
-
-    //             pantsRenderer.material = newMaterial;
-    //         }
-    //     }
-
-    //     // 靴
-    //     Transform shoesTransform = parentObject.transform.Find("Ch31_Shoes");
-    //     if (shoesTransform != null)
-    //     {
-    //         Renderer shoesRenderer = shoesTransform.GetComponent<Renderer>();
-    //         if (shoesRenderer != null)
-    //         {
-    //             Color randomColor = new Color(Random.value, Random.value, Random.value);
-    //             Material newMaterial = new Material(Shader.Find("Standard"));
-    //             newMaterial.color = randomColor;
-
-    //             shoesRenderer.material = newMaterial;
-    //         }
-    //     }
-    // }
 
     public void SetMaterialsToModels(GameObject parentObject)
     {
@@ -579,6 +497,25 @@ public class LDGenerator : MonoBehaviour
                 newMaterial.color = randomColor;
 
                 hairRenderer.material = newMaterial;
+            }
+        }
+
+        // 髭
+        Transform beardTransform = parentObject.transform.Find("Beard");
+        if (beardTransform != null)
+        {
+            Renderer beardRenderer = beardTransform.GetComponent<Renderer>();
+            if (beardRenderer != null)
+            {
+                Color32 color1 = new Color32(0, 0, 0, 255);
+                Color32 color2 = new Color32(116, 80, 48, 255);
+                float lerpFactor = Random.Range(0f, 1f);
+                Color32 randomColor32 = Color32.Lerp(color1, color2, lerpFactor);
+                Color randomColor = randomColor32;
+                Material newMaterial = new Material(Shader.Find("Standard"));
+                newMaterial.color = randomColor;
+
+                beardRenderer.material = newMaterial;
             }
         }
 
