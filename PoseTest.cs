@@ -114,7 +114,7 @@ public class PoseTest : MonoBehaviour
     public void SetMaterialsToModels(GameObject parentObject)
     {
         // 肌の色
-        Transform bodyTransform = parentObject.transform.Find("Ch31_Body");
+        Transform bodyTransform = parentObject.transform.Find("Body");
         if (bodyTransform != null)
         {
             Renderer bodyRenderer = bodyTransform.GetComponent<Renderer>();
@@ -133,7 +133,7 @@ public class PoseTest : MonoBehaviour
         }
 
         // 髪の毛
-        Transform hairTransform = parentObject.transform.Find("Ch31_Hair");
+        Transform hairTransform = parentObject.transform.Find("Hair");
         if (hairTransform != null)
         {
             Renderer hairRenderer = hairTransform.GetComponent<Renderer>();
@@ -151,8 +151,27 @@ public class PoseTest : MonoBehaviour
             }
         }
 
+        // 髭
+        Transform beardTransform = parentObject.transform.Find("Beard");
+        if (beardTransform != null)
+        {
+            Renderer beardRenderer = beardTransform.GetComponent<Renderer>();
+            if (beardRenderer != null)
+            {
+                Color32 color1 = new Color32(0, 0, 0, 255);
+                Color32 color2 = new Color32(116, 80, 48, 255);
+                float lerpFactor = Random.Range(0f, 1f);
+                Color32 randomColor32 = Color32.Lerp(color1, color2, lerpFactor);
+                Color randomColor = randomColor32;
+                Material newMaterial = new Material(Shader.Find("Standard"));
+                newMaterial.color = randomColor;
+
+                beardRenderer.material = newMaterial;
+            }
+        }
+
         // 上半身の服
-        Transform sweaterTransform = parentObject.transform.Find("Ch31_Sweater");
+        Transform sweaterTransform = parentObject.transform.Find("Tops");
         if (sweaterTransform != null)
         {
             Renderer sweaterRenderer = sweaterTransform.GetComponent<Renderer>();
@@ -172,7 +191,7 @@ public class PoseTest : MonoBehaviour
         }
 
         // 下半身の服
-        Transform pantsTransform = parentObject.transform.Find("Ch31_Pants");
+        Transform pantsTransform = parentObject.transform.Find("Pants");
         if (pantsTransform != null)
         {
             Renderer pantsRenderer = pantsTransform.GetComponent<Renderer>();
@@ -192,7 +211,7 @@ public class PoseTest : MonoBehaviour
         }
 
         // 靴
-        Transform shoesTransform = parentObject.transform.Find("Ch31_Shoes");
+        Transform shoesTransform = parentObject.transform.Find("Shoes");
         if (shoesTransform != null)
         {
             Renderer shoesRenderer = shoesTransform.GetComponent<Renderer>();
