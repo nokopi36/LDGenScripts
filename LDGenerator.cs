@@ -232,7 +232,7 @@ public class LDGenerator : MonoBehaviour
                 File.WriteAllText($"{LDGenSavePath}/{number}.txt", saveTxt);
                 ScreenShotCapture(number);
             }
-            yield return new WaitForSeconds(1);
+            yield return null;
         }
         Debug.Log("生成終了");
         Resources.UnloadUnusedAssets();
